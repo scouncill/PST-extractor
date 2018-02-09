@@ -1,0 +1,61 @@
+Sub extractRoutine()
+    Dim myolApp As New Outlook.Application
+    Dim myNameSpace As Outlook.NameSpace
+    
+    Dim myolApp2 As New Outlook.Application
+    Dim myNameSpace2 As Outlook.NameSpace
+       
+    Dim newNameSpace As Outlook.NameSpace
+    Dim newolApp As New Outlook.Application
+    
+    Dim newFolder As Outlook.MAPIFolder
+    Dim myNewFolder As Outlook.MAPIFolder
+    
+    Dim myItem As Outlook.MailItem
+    Dim myCopiedItem As Outlook.MailItem
+    Dim myStr As String
+        
+    On Error Resume Next
+        
+    Set myolApp = CreateObject("Outlook.Application")
+    Set myNameSpace = myolApp.GetNamespace("MAPI")
+    myNameSpace.AddStore "c:\001.pst"
+
+    Set myolApp2 = CreateObject("Outlook.Application")
+    Set myNameSpace2 = myolApp2.GetNamespace("MAPI")
+    myNameSpace2.AddStore "c:\002.pst"
+    
+    Dim fs, myFile
+    Set fs = CreateObject("Scripting.FileSystemObject")
+    Set myFile = fs.OpenTextFile("c:\infile.txt", 1, 0)
+        
+    Set newolApp = CreateObject("Outlook.Application")
+    Set newNameSpace = newolApp.GetNamespace("MAPI")
+    newNameSpace.AddStore "c:\outfile.pst"
+    
+    Set newFolder = newNameSpace.Folders.GetLast
+    Set myNewFolder = newFolder.Folders.Add("Mail", olFolderDrafts)
+    Set myNewFolder = newFolder.Folders("Mail")
+    
+    Do While myFile.AtEndOfStream <> True
+        myStr = myFile.ReadLine
+        Set myItem = myNameSpace.GetItemFromID(myStr)
+        If myItem.EntryID = myStr Then
+            Set myCopiedItem = myItem.Copy
+            myCopiedItem.Move myNewFolder
+        Else
+            Set myItem = myNameSpace2.GetItemFromID(myStr)
+            If myItem.EntryID = myStr Then
+                Set myCopiedItem = myItem.Copy
+                myCopiedItem.Move myNewFolder
+            
+           End If
+
+            'MsgBox (myStr)
+       End If
+        
+    Loop
+
+    fs.Close
+
+End Sub
